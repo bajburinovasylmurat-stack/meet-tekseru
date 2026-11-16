@@ -87,6 +87,15 @@
   .log time { color: var(--muted); font-size: 12px; display: block; margin-bottom: 2px; }
   .empty { text-align: center; color: var(--muted); padding: 30px 10px; }
   .foot { text-align: center; color: var(--muted); font-size: 12px; margin-top: 18px; }
+  .setup { margin-top: 12px; padding: 18px; border-radius: 20px; background: linear-gradient(145deg, rgba(255,191,60,.16), rgba(245,154,11,.08)); border: 1px solid rgba(255,191,60,.3); display: none; }
+  .setup.show { display: block; }
+  .setup h3 { margin: 0 0 6px; font-size: 18px; }
+  .setup .meta { white-space: normal; }
+  .setup ol { margin: 8px 0 14px; padding-left: 20px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .setup ol b { color: var(--text); }
+  .dl { width: 100%; padding: 14px; border-radius: 16px; background: linear-gradient(135deg, #ffc94d, #f59a0b); color: var(--ink); font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .dl svg { width: 20px; height: 20px; }
+  .dl:disabled { opacity: .6; }
   .err { margin: 14px; padding: 14px; border-radius: 16px; background: rgba(255,90,106,.12); color: #ffb3bb; font-size: 14px; display: none; }
   .err.show { display: block; }
 </style>
@@ -110,6 +119,17 @@
         <div class="stat a"><b id="sCam">0</b><span>камера өшік</span></div>
         <div class="stat"><b id="sLeft">0</b><span>шыққан</span></div>
       </div>
+    </section>
+
+    <section class="setup" id="setup">
+      <h3>Кеңейтім әлі қосылмаған</h3>
+      <div class="meta">Бұл бет компьютеріңіздегі Chrome кеңейтімі арқылы жұмыс істейді. Бір рет орнатасыз (3 минут):</div>
+      <ol>
+        <li>Төмендегі батырма — бот файл мен нұсқаулықты чатқа жібереді.</li>
+        <li>Компьютерде Chrome: <b>chrome://extensions</b> → <b>Developer mode</b> → <b>Load unpacked</b> → «meet-tekseru» папкасы.</li>
+        <li>Ашылған бетте <b>«Telegram-ды қосу»</b> → ботта <b>Start</b>.</li>
+      </ol>
+      <button class="dl" id="getFile"><svg class="i" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>Кеңейтімді жүктеу</button>
     </section>
 
     <div class="actions">
@@ -252,6 +272,7 @@
     try {
       const d = await api({ a: 'state' });
       state = d.state || null;
+      $('setup').classList.toggle('show', (d.linked === false && !state) || params.has('setup'));
       showErr('');
       if (d.pending) showPending(`«${d.pending}» компьютерге жіберілді, күтудеміз…`);
       else showPending('');
@@ -277,6 +298,21 @@
       showErr('Жіберілмеді: ' + e.message);
     }
   }
+
+  $('getFile').onclick = async () => {
+    haptic('medium');
+    const b = $('getFile');
+    b.disabled = true;
+    try {
+      await api({ a: 'file' });
+      b.lastChild.textContent = 'Файл бот чатына жіберілді';
+      try { tg.showAlert('Файл мен нұсқаулық бот чатына жіберілді. Компьютерде ашып, орнатыңыз.'); } catch {}
+    } catch (e) {
+      showErr('Жіберілмеді: ' + e.message);
+      b.disabled = false;
+    }
+  };
+  if (params.has('setup')) $('setup').classList.add('show');
 
   document.querySelectorAll('[data-cmd]').forEach((b) => (b.onclick = () => send(b.dataset.cmd)));
   $('monitor').onclick = () => send(state && state.monitor && state.monitor.on ? 'mon_off' : 'mon_on');
