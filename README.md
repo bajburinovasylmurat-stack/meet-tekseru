@@ -1,6 +1,4 @@
-# Мит тексеру
+# Мит тексеру — Telegram мини-қосымшасы
 
-JUZ40 кураторларына: Google Meet сабағын Telegram-нан түгендеу (қатысу, камера, шыққан оқушыға WhatsApp).
-
-Жүктеу беті: https://bajburinovasylmurat-stack.github.io/meet-tekseru/
-Орнатқыштар мен кеңейтім: [Releases](https://github.com/bajburinovasylmurat-stack/meet-tekseru/releases/latest)
+JUZ40 кураторларына: Meet сабағының жағдайы (кім бар, кім жоқ, камера, шыққандар) және басқару батырмалары.
+Бет тек Telegram ботының ішінен ашылады; деректерді куратордың компьютеріндегі «Мит тексеру» кеңейтімі жібереді.
