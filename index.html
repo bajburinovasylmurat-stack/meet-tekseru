@@ -96,6 +96,11 @@
   .dl { width: 100%; padding: 14px; border-radius: 16px; background: linear-gradient(135deg, #ffc94d, #f59a0b); color: var(--ink); font-weight: 700; font-size: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .dl svg { width: 20px; height: 20px; }
   .dl:disabled { opacity: .6; }
+  .link { margin-top: 10px; display: flex; gap: 8px; padding: 6px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+  .link input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font: inherit; padding: 8px 10px; }
+  .link input::placeholder { color: var(--muted); }
+  .link button { padding: 8px 14px; border-radius: 12px; background: linear-gradient(135deg, #ffc94d, #f59a0b); color: var(--ink); font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .link button svg { width: 18px; height: 18px; }
   .err { margin: 14px; padding: 14px; border-radius: 16px; background: rgba(255,90,106,.12); color: #ffb3bb; font-size: 14px; display: none; }
   .err.show { display: block; }
 </style>
@@ -137,6 +142,11 @@
       <button class="act" data-cmd="presence"><svg class="i ic" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg>Қатысу</button>
       <button class="act" data-cmd="camera"><svg class="i ic" viewBox="0 0 24 24"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>Камера</button>
     </div>
+
+    <form class="link" id="linkForm">
+      <input id="meetInput" type="url" inputmode="url" autocomplete="off" placeholder="Басқа мит сілтемесі">
+      <button type="submit"><svg class="i" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>Ашу</button>
+    </form>
 
     <div class="monitor">
       <div><b>Бақылау</b><small id="monSub">шыққан оқушыға WhatsApp-қа өзі жазады</small></div>
@@ -284,12 +294,12 @@
     }
   }
 
-  const LABEL = { lesson: 'Сабақты бастау', presence: 'Қатысу', camera: 'Камера', mon_on: 'Бақылауды қосу', mon_off: 'Бақылауды тоқтату' };
+  const LABEL = { lesson: 'Сабақты бастау', meetlink: 'Митті ашу', presence: 'Қатысу', camera: 'Камера', mon_on: 'Бақылауды қосу', mon_off: 'Бақылауды тоқтату' };
   async function send(cmd) {
     haptic('medium');
     try {
       await api({ a: 'cmd', cmd });
-      showPending(`«${LABEL[cmd] || 'WhatsApp'}» компьютерге жіберілді — нәтиже осында және Telegram-да шығады.`);
+      showPending(`«${LABEL[cmd.split(':')[0]] || 'WhatsApp'}» компьютерге жіберілді — нәтиже осында және Telegram-да шығады.`);
       if (DEMO) {
         if (cmd === 'mon_on' || cmd === 'mon_off') { state.monitor.on = cmd === 'mon_on'; render(); }
         setTimeout(() => showPending(''), 1800);
@@ -313,6 +323,17 @@
     }
   };
   if (params.has('setup')) $('setup').classList.add('show');
+
+  // Куратор өз мит сілтемесін жібереді — компьютерде сол мит ашылады.
+  $('linkForm').onsubmit = (e) => {
+    e.preventDefault();
+    const m = $('meetInput').value.match(/[a-z]{3}-[a-z]{4}-[a-z]{3}/i);
+    if (!m) return showErr('Мит сілтемесі қате: мысалы https://meet.google.com/abc-defg-hij');
+    showErr('');
+    $('meetInput').value = '';
+    $('meetInput').blur();
+    send('meetlink:' + m[0].toLowerCase());
+  };
 
   document.querySelectorAll('[data-cmd]').forEach((b) => (b.onclick = () => send(b.dataset.cmd)));
   $('monitor').onclick = () => send(state && state.monitor && state.monitor.on ? 'mon_off' : 'mon_on');
